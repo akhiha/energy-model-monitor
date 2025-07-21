@@ -31,30 +31,64 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
 
     const sortedData = [...data].sort((a, b) => new Date(a.Timestamp).getTime() - new Date(b.Timestamp).getTime());
     
-    const cpuData = sortedData.map((item, index) => {
+    // Group data by model to create continuous lines
+    const modelGroups: Record<string, typeof sortedData> = {};
+    sortedData.forEach(item => {
+      if (!modelGroups[item.SelectedModel]) {
+        modelGroups[item.SelectedModel] = [];
+      }
+      modelGroups[item.SelectedModel].push(item);
+    });
+
+    // Create time series for all data points
+    const allTimePoints = sortedData.map((_, index) => index + 1);
+    
+    const cpuData = allTimePoints.map(timePoint => {
+      const item = sortedData[timePoint - 1];
       const baseData: any = { 
-        timePoint: index + 1,
+        timePoint,
         timestamp: new Date(item.Timestamp).toLocaleTimeString()
       };
       
+      // Add efficiency values for each model at this time point
       uniqueModels.forEach(model => {
-        if (item.SelectedModel === model) {
-          baseData[model] = item.CPUUsage > 0 ? Number((item.InstantaneousConfidence / item.CPUUsage).toFixed(2)) : 0;
+        const modelData = modelGroups[model];
+        if (modelData && modelData.length > 0) {
+          // Find the most recent data point for this model up to current time
+          let modelValue = null;
+          for (let i = 0; i < timePoint; i++) {
+            if (sortedData[i] && sortedData[i].SelectedModel === model) {
+              const cpuUsage = sortedData[i].CPUUsage;
+              modelValue = cpuUsage > 0 ? Math.min(100, Number((sortedData[i].InstantaneousConfidence / cpuUsage).toFixed(2))) : 0;
+            }
+          }
+          baseData[model] = modelValue;
         }
       });
       
       return baseData;
     });
 
-    const batteryData = sortedData.map((item, index) => {
+    const batteryData = allTimePoints.map(timePoint => {
+      const item = sortedData[timePoint - 1];
       const baseData: any = { 
-        timePoint: index + 1,
+        timePoint,
         timestamp: new Date(item.Timestamp).toLocaleTimeString()
       };
       
+      // Add efficiency values for each model at this time point
       uniqueModels.forEach(model => {
-        if (item.SelectedModel === model) {
-          baseData[model] = item.BatteryConsumption > 0 ? Number((item.InstantaneousConfidence / item.BatteryConsumption).toFixed(2)) : 0;
+        const modelData = modelGroups[model];
+        if (modelData && modelData.length > 0) {
+          // Find the most recent data point for this model up to current time
+          let modelValue = null;
+          for (let i = 0; i < timePoint; i++) {
+            if (sortedData[i] && sortedData[i].SelectedModel === model) {
+              const batteryConsumption = sortedData[i].BatteryConsumption;
+              modelValue = batteryConsumption > 0 ? Math.min(100, Number((sortedData[i].InstantaneousConfidence / batteryConsumption).toFixed(2))) : 0;
+            }
+          }
+          baseData[model] = modelValue;
         }
       });
       
@@ -123,7 +157,7 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
             <LineChart data={cpuEfficiencyData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="timePoint" />
-              <YAxis />
+              <YAxis domain={[0, 100]} />
               <Tooltip />
               <Legend />
               {Array.from(selectedModels).map((model) => (
@@ -158,7 +192,7 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
             <LineChart data={batteryEfficiencyData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="timePoint" />
-              <YAxis />
+              <YAxis domain={[0, 100]} />
               <Tooltip />
               <Legend />
               {Array.from(selectedModels).map((model) => (
