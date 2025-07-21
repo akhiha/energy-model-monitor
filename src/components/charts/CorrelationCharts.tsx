@@ -96,12 +96,14 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
               <ScatterChart>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
+                  type="number"
                   dataKey="x" 
                   domain={[0, 5]}
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={11}
-                  name="Energy"
+                  name="Energy Usage"
                   unit="J"
+                  tickCount={6}
                 />
                 <YAxis 
                   dataKey="y" 
