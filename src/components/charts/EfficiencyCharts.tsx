@@ -281,8 +281,14 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={cpuEfficiencyData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="timePoint" />
-              <YAxis domain={getYAxisDomain(cpuEfficiencyData, Array.from(selectedModels))} />
+              <XAxis 
+                dataKey="timePoint" 
+                label={{ value: 'Time Points', position: 'insideBottom', offset: -5 }}
+              />
+              <YAxis 
+                domain={getYAxisDomain(cpuEfficiencyData, Array.from(selectedModels))}
+                label={{ value: 'CPU Efficiency', angle: -90, position: 'insideLeft' }}
+              />
               <Tooltip />
               <Legend />
               {Array.from(selectedModels).map((model) => (
@@ -316,8 +322,14 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={batteryEfficiencyData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="timePoint" />
-              <YAxis domain={getYAxisDomain(batteryEfficiencyData, Array.from(selectedModels))} />
+              <XAxis 
+                dataKey="timePoint" 
+                label={{ value: 'Time Points', position: 'insideBottom', offset: -5 }}
+              />
+              <YAxis 
+                domain={getYAxisDomain(batteryEfficiencyData, Array.from(selectedModels))}
+                label={{ value: 'Battery Efficiency', angle: -90, position: 'insideLeft' }}
+              />
               <Tooltip />
               <Legend />
               {Array.from(selectedModels).map((model) => (

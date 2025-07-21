@@ -29,8 +29,8 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
       }));
 
       const batteryData = modelItems.map((item, index) => ({
-        x: item.BatteryLevel,
-        y: item.InstantaneousConfidence,
+        x: item.InstantaneousConfidence,
+        y: item.BatteryConsumption,
         model,
         id: index,
       }));
@@ -104,17 +104,29 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Confidence vs CPU</CardTitle>
+            <CardTitle className="text-lg">Confidence vs CPU Usage</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
               <ScatterChart>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" dataKey="x" name="Confidence" />
-                <YAxis type="number" dataKey="y" name="CPU Usage" />
+                <XAxis 
+                  type="number" 
+                  dataKey="x" 
+                  name="Confidence" 
+                  domain={[0, 100]}
+                  label={{ value: 'Confidence (%)', position: 'insideBottom', offset: -5 }}
+                />
+                <YAxis 
+                  type="number" 
+                  dataKey="y" 
+                  name="CPU Usage" 
+                  domain={[0, 100]}
+                  label={{ value: 'CPU Usage (%)', angle: -90, position: 'insideLeft' }}
+                />
                 <Tooltip />
                 {Object.entries(filteredData).map(([model, modelData], index) => (
                   <Scatter
@@ -131,14 +143,26 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Battery vs Confidence</CardTitle>
+            <CardTitle className="text-lg">Confidence vs Battery Consumption</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
               <ScatterChart>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" dataKey="x" name="Battery" />
-                <YAxis type="number" dataKey="y" name="Confidence" />
+                <XAxis 
+                  type="number" 
+                  dataKey="x" 
+                  name="Confidence" 
+                  domain={[0, 100]}
+                  label={{ value: 'Confidence (%)', position: 'insideBottom', offset: -5 }}
+                />
+                <YAxis 
+                  type="number" 
+                  dataKey="y" 
+                  name="Battery Consumption" 
+                  domain={[0, 100]}
+                  label={{ value: 'Battery Consumption', angle: -90, position: 'insideLeft' }}
+                />
                 <Tooltip />
                 {Object.entries(filteredData).map(([model, modelData], index) => (
                   <Scatter

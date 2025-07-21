@@ -9,11 +9,12 @@ import { MonitoringData, DashboardStats as StatsType } from '@/types/dashboard';
 import { Card, CardContent } from '@/components/ui/card';
 import { BarChart3, TrendingUp, Zap, Brain, Network, Upload, Cpu, Battery } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { generateSampleData } from '@/utils/sampleData';
 
 export const Dashboard: React.FC = () => {
   const [data, setData] = useState<MonitoringData[]>([]);
 
-  // Load data from localStorage if available
+  // Load data from localStorage if available, otherwise use sample data
   useEffect(() => {
     const storedData = localStorage.getItem('dashboardData');
     if (storedData) {
@@ -21,7 +22,12 @@ export const Dashboard: React.FC = () => {
         setData(JSON.parse(storedData));
       } catch (error) {
         console.error('Error parsing stored data:', error);
+        // Fallback to sample data if stored data is corrupted
+        setData(generateSampleData());
       }
+    } else {
+      // Use sample data as default
+      setData(generateSampleData());
     }
   }, []);
 
@@ -103,7 +109,8 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {data.length > 0 ? (
+        {/* Always show dashboard since we now have sample data */}
+        {data.length > 0 && (
           <>
             {/* Stats Overview */}
             <div className="space-y-4">
@@ -163,28 +170,6 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
           </>
-        ) : (
-          /* Empty State */
-          <Card className="py-16">
-            <CardContent className="text-center space-y-6">
-              <div className="p-4 bg-muted/50 rounded-full w-fit mx-auto">
-                <Upload className="h-12 w-12 text-muted-foreground" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-semibold mb-2">No Data Available</h3>
-                <p className="text-muted-foreground mb-4">
-                  Upload your CSV monitoring data to start analyzing model performance
-                </p>
-                <Link 
-                  to="/upload" 
-                  className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Data
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
         )}
 
         {/* Footer */}
