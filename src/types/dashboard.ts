@@ -1,19 +1,23 @@
 export interface MonitoringData {
-  ID: number;
-  ModelName: string;
-  EnergyUsage: number;
-  MeanConfidence: number;
-  MeanInference: number;
-  EnergyPerConfidence?: number;
-  Timestamp?: string;
+  Timestamp: string;
+  BatteryLevel: number;
+  CPUUsage: number;
+  BatteryConsumption: number;
+  SelectedModel: string;
+  InstantaneousConfidence: number;
+  AverageConfidence: number;
+  CurrentTotalPredictions: number;
+  InferenceTime?: number; // Calculated field
 }
 
 export interface DashboardStats {
   totalModels: number;
   totalDataPoints: number;
-  totalEnergyUsage: number;
-  avgConfidence: number;
-  avgInferenceTime: number;
+  totalCPUUsage: number;
+  totalBatteryConsumption: number;
+  avgInstantaneousConfidence: number;
+  avgBatteryLevel: number;
+  totalPredictions: number;
 }
 
 export interface ChartData {

@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { DashboardStats } from './DashboardStats';
 import { ModelFrequencyChart } from './charts/ModelFrequencyChart';
-import { CumulativeEnergyChart } from './charts/CumulativeEnergyChart';
+import { CumulativeCPUChart } from './charts/CumulativeCPUChart';
+import { CumulativeBatteryChart } from './charts/CumulativeBatteryChart';
 import { CorrelationCharts } from './charts/CorrelationCharts';
-import { AdditionalCharts } from './charts/AdditionalCharts';
+import { EfficiencyCharts } from './charts/EfficiencyCharts';
 import { MonitoringData, DashboardStats as StatsType } from '@/types/dashboard';
 import { Card, CardContent } from '@/components/ui/card';
-import { BarChart3, TrendingUp, Zap, Brain, Network, Upload } from 'lucide-react';
+import { BarChart3, TrendingUp, Zap, Brain, Network, Upload, Cpu, Battery } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
@@ -26,29 +27,34 @@ export const Dashboard: React.FC = () => {
 
   const stats: StatsType = useMemo(() => {
     if (data.length === 0) {
-    return {
-      totalModels: 0,
-      totalDataPoints: 0,
-      totalEnergyUsage: 0,
-      avgConfidence: 0,
-      avgInferenceTime: 0,
-    };
+      return {
+        totalModels: 0,
+        totalDataPoints: 0,
+        totalCPUUsage: 0,
+        totalBatteryConsumption: 0,
+        avgInstantaneousConfidence: 0,
+        avgBatteryLevel: 0,
+        totalPredictions: 0,
+      };
     }
 
-    const uniqueModels = new Set(data.map(item => item.ModelName)).size;
-    const totalEnergyUsage = data.reduce((sum, item) => sum + item.EnergyUsage, 0);
-    const totalConfidence = data.reduce((sum, item) => sum + item.MeanConfidence, 0);
-    const totalInferenceTime = data.reduce((sum, item) => sum + item.MeanInference, 0);
+    const uniqueModels = new Set(data.map(item => item.SelectedModel)).size;
+    const totalCPUUsage = data.reduce((sum, item) => sum + item.CPUUsage, 0);
+    const totalBatteryConsumption = data.reduce((sum, item) => sum + item.BatteryConsumption, 0);
+    const totalInstantaneousConfidence = data.reduce((sum, item) => sum + item.InstantaneousConfidence, 0);
+    const totalBatteryLevel = data.reduce((sum, item) => sum + item.BatteryLevel, 0);
+    const totalPredictions = data.reduce((sum, item) => sum + item.CurrentTotalPredictions, 0);
 
     return {
       totalModels: uniqueModels,
       totalDataPoints: data.length,
-      totalEnergyUsage: totalEnergyUsage,
-      avgConfidence: totalConfidence / data.length,
-      avgInferenceTime: totalInferenceTime / data.length,
+      totalCPUUsage: totalCPUUsage,
+      totalBatteryConsumption: totalBatteryConsumption,
+      avgInstantaneousConfidence: totalInstantaneousConfidence / data.length,
+      avgBatteryLevel: totalBatteryLevel / data.length,
+      totalPredictions: totalPredictions,
     };
   }, [data]);
-
 
   return (
     <div className="dashboard-container">
@@ -110,31 +116,41 @@ export const Dashboard: React.FC = () => {
                 <ModelFrequencyChart data={data} />
               </div>
 
-              {/* Cumulative Energy */}
-              <div className="space-y-4">
-                <h2 className="text-2xl font-semibold flex items-center space-x-2">
-                  <Zap className="h-6 w-6 text-primary" />
-                  <span>2. Energy Consumption Trends</span>
-                </h2>
-                <CumulativeEnergyChart data={data} />
+              {/* Cumulative Usage */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-semibold flex items-center space-x-2">
+                    <Cpu className="h-6 w-6 text-primary" />
+                    <span>2. Cumulative CPU Usage</span>
+                  </h2>
+                  <CumulativeCPUChart data={data} />
+                </div>
+                
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-semibold flex items-center space-x-2">
+                    <Battery className="h-6 w-6 text-primary" />
+                    <span>3. Cumulative Battery Consumption</span>
+                  </h2>
+                  <CumulativeBatteryChart data={data} />
+                </div>
               </div>
 
               {/* Correlation Analysis */}
               <div className="space-y-4">
                 <h2 className="text-2xl font-semibold flex items-center space-x-2">
                   <TrendingUp className="h-6 w-6 text-primary" />
-                  <span>3. & 4. Correlation Analysis</span>
+                  <span>4. Correlation Analysis</span>
                 </h2>
                 <CorrelationCharts data={data} />
               </div>
 
-              {/* Additional Insights */}
+              {/* Efficiency Analysis */}
               <div className="space-y-4">
                 <h2 className="text-2xl font-semibold flex items-center space-x-2">
-                  <BarChart3 className="h-6 w-6 text-primary" />
-                  <span>5. Additional Insights</span>
+                  <Zap className="h-6 w-6 text-primary" />
+                  <span>5. Efficiency Analysis</span>
                 </h2>
-                <AdditionalCharts data={data} />
+                <EfficiencyCharts data={data} />
               </div>
             </div>
           </>

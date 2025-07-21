@@ -1,82 +1,69 @@
 import { MonitoringData } from '@/types/dashboard';
 
 export const generateSampleData = (): MonitoringData[] => {
-  const models = ['EfficientNetB0', 'EfficientliteV2', 'MobileNetV3', 'ResNet50'];
+  const models = ['MobileNet V1', 'EfficientDet Lite0', 'EfficientDet Lite1', 'EfficientDet Lite2'];
   const sampleData: MonitoringData[] = [];
 
-  // Your exact sample data format
-  const exactData = [
-    {ID: 1, ModelName: 'EfficientliteV2', EnergyUsage: 2.273, CPUUsage: 25.34, Confidence: 0.815},
-    {ID: 2, ModelName: 'EfficientliteV2', EnergyUsage: 1.191, CPUUsage: 29.59, Confidence: 0.396},
-    {ID: 3, ModelName: 'EfficientliteV2', EnergyUsage: 2.995, CPUUsage: 73.77, Confidence: 0.363},
-    {ID: 4, ModelName: 'EfficientliteV2', EnergyUsage: 2.06, CPUUsage: 41.61, Confidence: 0.971},
-    {ID: 5, ModelName: 'EfficientliteV2', EnergyUsage: 1.663, CPUUsage: 58.68, Confidence: 0.906},
-  ];
-
-  // Add your exact data first
-  exactData.forEach(item => {
-    sampleData.push({
-      ID: item.ID,
-      ModelName: item.ModelName,
-      EnergyUsage: item.EnergyUsage,
-      MeanConfidence: item.Confidence,
-      MeanInference: Math.random() * 50 + 20, // Generate inference time
-      EnergyPerConfidence: Number((item.EnergyUsage / item.Confidence).toFixed(4))
-    });
-  });
-
-  // Generate additional data to reach 100 points with 4 models
-  for (let i = 6; i <= 100; i++) {
+  // Generate sample data matching the new format
+  for (let i = 0; i < 100; i++) {
     const modelName = models[Math.floor(Math.random() * models.length)];
+    const baseTime = new Date('2024-12-18T17:53:05');
+    const timestamp = new Date(baseTime.getTime() + (i * 1000 + Math.random() * 1000));
     
     // Generate realistic data based on model characteristics
-    let baseEnergy, baseConfidence;
+    let batteryLevel = Math.max(10, 100 - (i * 0.4) + Math.random() * 5);
+    let cpuUsage, batteryConsumption, confidence;
     
     switch (modelName) {
-      case 'EfficientliteV2':
-        baseEnergy = Math.random() * 1.5 + 1.0; // 1.0 to 2.5
-        baseConfidence = Math.random() * 0.6 + 0.3; // 0.3 to 0.9
+      case 'MobileNet V1':
+        cpuUsage = Math.random() * 15 + 5; // 5-20%
+        batteryConsumption = Math.random() * 2 + 1; // 1-3
+        confidence = Math.random() * 30 + 10; // 10-40%
         break;
-      case 'EfficientNetB0':
-        baseEnergy = Math.random() * 1.2 + 0.8; // 0.8 to 2.0
-        baseConfidence = Math.random() * 0.4 + 0.6; // 0.6 to 1.0
+      case 'EfficientDet Lite0':
+        cpuUsage = Math.random() * 10 + 3; // 3-13%
+        batteryConsumption = Math.random() * 2.5 + 1.5; // 1.5-4
+        confidence = Math.random() * 40 + 30; // 30-70%
         break;
-      case 'MobileNetV3':
-        baseEnergy = Math.random() * 1.0 + 0.5; // 0.5 to 1.5
-        baseConfidence = Math.random() * 0.5 + 0.4; // 0.4 to 0.9
+      case 'EfficientDet Lite1':
+        cpuUsage = Math.random() * 12 + 8; // 8-20%
+        batteryConsumption = Math.random() * 3 + 2; // 2-5
+        confidence = Math.random() * 35 + 40; // 40-75%
         break;
-      case 'ResNet50':
-        baseEnergy = Math.random() * 2.0 + 1.5; // 1.5 to 3.5
-        baseConfidence = Math.random() * 0.3 + 0.7; // 0.7 to 1.0
+      case 'EfficientDet Lite2':
+        cpuUsage = Math.random() * 20 + 15; // 15-35%
+        batteryConsumption = Math.random() * 15 + 5; // 5-20
+        confidence = Math.random() * 30 + 15; // 15-45%
         break;
       default:
-        baseEnergy = Math.random() * 1.5 + 1.0;
-        baseConfidence = Math.random() * 0.5 + 0.5;
+        cpuUsage = Math.random() * 20 + 5;
+        batteryConsumption = Math.random() * 5 + 1;
+        confidence = Math.random() * 50 + 25;
     }
 
-    const meanInference = Math.random() * 50 + 20; // 20 to 70ms
+    const totalPredictions = Math.floor(Math.random() * 10) + i;
+    const avgConfidence = confidence * (0.9 + Math.random() * 0.2); // Slightly different from instantaneous
 
     sampleData.push({
-      ID: i,
-      ModelName: modelName,
-      EnergyUsage: Number(baseEnergy.toFixed(3)),
-      MeanConfidence: Number(baseConfidence.toFixed(3)),
-      MeanInference: Number(meanInference.toFixed(2)),
-      EnergyPerConfidence: Number((baseEnergy / baseConfidence).toFixed(4))
+      Timestamp: timestamp.toISOString().slice(0, 19).replace('T', ' '),
+      BatteryLevel: Number(batteryLevel.toFixed(0)),
+      CPUUsage: Number(cpuUsage.toFixed(1)),
+      BatteryConsumption: Number(batteryConsumption.toFixed(2)),
+      SelectedModel: modelName,
+      InstantaneousConfidence: Number(confidence.toFixed(5)),
+      AverageConfidence: Number(avgConfidence.toFixed(5)),
+      CurrentTotalPredictions: totalPredictions,
+      InferenceTime: i > 0 ? Math.random() * 2 + 0.5 : 0, // 0.5-2.5 seconds
     });
   }
 
   return sampleData;
 };
 
-export const sampleCSVContent = `ID,ModelName,EnergyUsage,CPUUsage,Confidence
-1,EfficientliteV2,2.273,25.34,0.815
-2,EfficientliteV2,1.191,29.59,0.396
-3,EfficientliteV2,2.995,73.77,0.363
-4,EfficientliteV2,2.06,41.61,0.971
-5,EfficientliteV2,1.663,58.68,0.906
-6,EfficientNetB0,1.543,32.45,0.782
-7,MobileNetV3,0.891,21.34,0.654
-8,ResNet50,2.456,45.67,0.892
-9,EfficientNetB0,1.234,28.91,0.743
-10,MobileNetV3,1.098,24.56,0.598`;
+export const sampleCSVContent = `Timestamp,BatteryLevel,CPUUsage,BatteryConsumption,SelectedModel,InstantaneousConfidence,AverageConfidence,CurrentTotalPredictions
+2024-12-18 17:53:05,58,12.0,1.74,MobileNet V1,0.0,0.0,0
+2024-12-18 17:53:05,58,12.0,1.74,MobileNet V1,0.0,0.0,0
+2024-12-18 17:53:06,58,4.0,1.74,EfficientDet Lite1,48.30729,47.61795,0
+2024-12-18 17:53:06,58,4.0,1.74,EfficientDet Lite0,48.30729,47.61795,0
+2024-12-18 17:53:08,58,19.0,12.18,EfficientDet Lite2,18.75,20.690104,0
+2024-12-18 17:53:08,58,19.0,12.18,EfficientDet Lite2,18.75,20.690104,0`;

@@ -19,7 +19,7 @@ const COLORS = [
 export const ModelFrequencyChart: React.FC<ModelFrequencyChartProps> = ({ data }) => {
   const frequencyData: ChartData[] = React.useMemo(() => {
     const counts = data.reduce((acc, item) => {
-      acc[item.ModelName] = (acc[item.ModelName] || 0) + 1;
+      acc[item.SelectedModel] = (acc[item.SelectedModel] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 

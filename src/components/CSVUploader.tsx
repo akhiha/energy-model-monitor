@@ -23,36 +23,47 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onDataLoad }) => {
       header: true,
       skipEmptyLines: true,
       transformHeader: (header) => header.trim(),
-      transform: (value, field) => {
-        // Convert numeric fields
-        if (typeof field === 'string' && ['ID', 'EnergyUsage', 'MeanConfidence', 'MeanInference', 'EnergyPerConfidence'].includes(field)) {
-          const num = parseFloat(String(value));
-          return isNaN(num) ? 0 : num;
-        }
-        return String(value).trim();
-      },
       complete: (results) => {
         try {
-          const data = results.data as MonitoringData[];
+          // Sort data by timestamp first
+          const sortedData = (results.data as any[]).sort((a: any, b: any) => 
+            new Date(a.Timestamp).getTime() - new Date(b.Timestamp).getTime()
+          );
           
+          // Calculate inference time as difference between consecutive timestamps
+          const transformedData: MonitoringData[] = sortedData.map((row: any, index: number) => {
+            let inferenceTime = 0;
+            if (index > 0) {
+              const currentTime = new Date(row.Timestamp).getTime();
+              const previousTime = new Date(sortedData[index - 1].Timestamp).getTime();
+              inferenceTime = (currentTime - previousTime) / 1000; // Convert to seconds
+            }
+            
+            return {
+              Timestamp: String(row.Timestamp || new Date().toISOString()),
+              BatteryLevel: parseFloat(row.BatteryLevel) || 0,
+              CPUUsage: parseFloat(row.CPUUsage) || 0,
+              BatteryConsumption: parseFloat(row.BatteryConsumption) || 0,
+              SelectedModel: String(row.SelectedModel || ''),
+              InstantaneousConfidence: parseFloat(row.InstantaneousConfidence) || 0,
+              AverageConfidence: parseFloat(row.AverageConfidence) || 0,
+              CurrentTotalPredictions: parseFloat(row.CurrentTotalPredictions) || 0,
+              InferenceTime: inferenceTime,
+            };
+          });
+
           // Validate required fields
-          const requiredFields = ['ID', 'ModelName', 'EnergyUsage', 'MeanConfidence', 'MeanInference'];
-          const sampleRow = data[0];
+          const requiredFields = ['Timestamp', 'BatteryLevel', 'CPUUsage', 'BatteryConsumption', 'SelectedModel', 'InstantaneousConfidence'];
+          const sampleRow = transformedData[0];
           
           if (!sampleRow || !requiredFields.every(field => field in sampleRow)) {
             throw new Error(`Missing required fields. Expected: ${requiredFields.join(', ')}`);
           }
 
-          // Calculate EnergyPerConfidence if not provided
-          const processedData = data.map(row => ({
-            ...row,
-            EnergyPerConfidence: row.EnergyPerConfidence || (row.EnergyUsage / Math.max(row.MeanConfidence, 0.001))
-          }));
-
-          onDataLoad(processedData);
+          onDataLoad(transformedData);
           toast({
             title: "CSV loaded successfully!",
-            description: `Processed ${processedData.length} rows of data.`,
+            description: `Processed ${transformedData.length} rows of data.`,
           });
         } catch (error) {
           toast({
@@ -150,11 +161,14 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onDataLoad }) => {
         <div className="text-sm text-muted-foreground">
           <p className="font-medium mb-2">Expected CSV format:</p>
           <ul className="space-y-1 text-xs">
-            <li>• <span className="font-mono">ID</span> - Unique identifier</li>
-            <li>• <span className="font-mono">ModelName</span> - Name of the model</li>
-            <li>• <span className="font-mono">EnergyUsage</span> - Energy consumption</li>
-            <li>• <span className="font-mono">MeanConfidence</span> - Average confidence score</li>
-            <li>• <span className="font-mono">MeanInference</span> - Average inference time</li>
+            <li>• <span className="font-mono">Timestamp</span> - Time of measurement</li>
+            <li>• <span className="font-mono">BatteryLevel</span> - Battery percentage</li>
+            <li>• <span className="font-mono">CPUUsage</span> - CPU usage percentage</li>
+            <li>• <span className="font-mono">BatteryConsumption</span> - Battery consumption</li>
+            <li>• <span className="font-mono">SelectedModel</span> - Name of selected model</li>
+            <li>• <span className="font-mono">InstantaneousConfidence</span> - Confidence score</li>
+            <li>• <span className="font-mono">AverageConfidence</span> - Average confidence</li>
+            <li>• <span className="font-mono">CurrentTotalPredictions</span> - Total predictions</li>
           </ul>
         </div>
       </div>
