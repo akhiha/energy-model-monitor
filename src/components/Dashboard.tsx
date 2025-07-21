@@ -1,21 +1,27 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { CSVUploader } from './CSVUploader';
 import { DashboardStats } from './DashboardStats';
 import { ModelFrequencyChart } from './charts/ModelFrequencyChart';
 import { CumulativeEnergyChart } from './charts/CumulativeEnergyChart';
 import { CorrelationCharts } from './charts/CorrelationCharts';
 import { AdditionalCharts } from './charts/AdditionalCharts';
 import { MonitoringData, DashboardStats as StatsType } from '@/types/dashboard';
-import { generateSampleData } from '@/utils/sampleData';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, TrendingUp, Zap, Brain, Network } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { BarChart3, TrendingUp, Zap, Brain, Network, Upload } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
   const [data, setData] = useState<MonitoringData[]>([]);
 
-  // Load sample data on mount for demo
+  // Load data from localStorage if available
   useEffect(() => {
-    setData(generateSampleData());
+    const storedData = localStorage.getItem('dashboardData');
+    if (storedData) {
+      try {
+        setData(JSON.parse(storedData));
+      } catch (error) {
+        console.error('Error parsing stored data:', error);
+      }
+    }
   }, []);
 
   const stats: StatsType = useMemo(() => {
@@ -43,9 +49,6 @@ export const Dashboard: React.FC = () => {
     };
   }, [data]);
 
-  const handleDataLoad = (newData: MonitoringData[]) => {
-    setData(newData);
-  };
 
   return (
     <div className="dashboard-container">
@@ -138,15 +141,22 @@ export const Dashboard: React.FC = () => {
         ) : (
           /* Empty State */
           <Card className="py-16">
-            <CardContent className="text-center space-y-4">
+            <CardContent className="text-center space-y-6">
               <div className="p-4 bg-muted/50 rounded-full w-fit mx-auto">
-                <BarChart3 className="h-12 w-12 text-muted-foreground" />
+                <Upload className="h-12 w-12 text-muted-foreground" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2">No Data Available</h3>
-                <p className="text-muted-foreground">
-                  Upload a CSV file to start analyzing your model monitoring data
+                <h3 className="text-2xl font-semibold mb-2">No Data Available</h3>
+                <p className="text-muted-foreground mb-4">
+                  Upload your CSV monitoring data to start analyzing model performance
                 </p>
+                <Link 
+                  to="/upload" 
+                  className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Data
+                </Link>
               </div>
             </CardContent>
           </Card>
