@@ -132,43 +132,104 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
     setSelectedModels(newSelected);
   };
 
-  // Calculate model efficiency comparison data
+  // Calculate model efficiency comparison data with complete parameters
   const modelEfficiencyData = useMemo(() => {
     const modelStats: Record<string, { 
-      cpuEfficiencySum: number, 
-      batteryEfficiencySum: number, 
+      totalCPU: number, 
+      totalBattery: number, 
+      totalConfidence: number, 
       count: number,
-      model: string
+      modelEfficiencySum: number,
+      cpuEfficiencySum: number,
+      batteryEfficiencySum: number,
+      maxConfidence: number,
     }> = {};
 
     data.forEach(item => {
       if (!modelStats[item.SelectedModel]) {
         modelStats[item.SelectedModel] = { 
-          cpuEfficiencySum: 0, 
-          batteryEfficiencySum: 0, 
+          totalCPU: 0, 
+          totalBattery: 0, 
+          totalConfidence: 0, 
           count: 0,
-          model: item.SelectedModel
+          modelEfficiencySum: 0,
+          cpuEfficiencySum: 0,
+          batteryEfficiencySum: 0,
+          maxConfidence: 0,
         };
       }
       
       const stats = modelStats[item.SelectedModel];
+      // Model Efficiency = Confidence / CPU Usage
+      const modelEff = item.CPUUsage > 0 ? item.InstantaneousConfidence / item.CPUUsage : 0;
       // CPU efficiency = CPU / confidence
       const cpuEff = item.InstantaneousConfidence > 0 ? item.CPUUsage / item.InstantaneousConfidence : 0;
       // Battery efficiency = Battery / confidence  
       const batteryEff = item.InstantaneousConfidence > 0 ? item.BatteryConsumption / item.InstantaneousConfidence : 0;
       
+      stats.totalCPU += item.CPUUsage;
+      stats.totalBattery += item.BatteryConsumption;
+      stats.totalConfidence += item.InstantaneousConfidence;
+      stats.modelEfficiencySum += modelEff;
       stats.cpuEfficiencySum += cpuEff;
       stats.batteryEfficiencySum += batteryEff;
+      stats.maxConfidence = Math.max(stats.maxConfidence, item.InstantaneousConfidence);
       stats.count += 1;
     });
 
-    return Object.values(modelStats).map(stats => ({
-      model: stats.model,
+    return Object.entries(modelStats).map(([model, stats]) => ({
+      model,
+      modelEfficiency: Number((stats.modelEfficiencySum / stats.count).toFixed(3)),
       cpuEfficiency: Number((stats.cpuEfficiencySum / stats.count).toFixed(3)),
       batteryEfficiency: Number((stats.batteryEfficiencySum / stats.count).toFixed(3)),
-      color: modelColors[stats.model as keyof typeof modelColors] || '#6B7280'
+      avgCPUUsage: Number((stats.totalCPU / stats.count).toFixed(1)),
+      avgBatteryConsumption: Number((stats.totalBattery / stats.count).toFixed(2)),
+      avgConfidence: Number((stats.totalConfidence / stats.count).toFixed(1)),
+      maxConfidence: Number(stats.maxConfidence.toFixed(1)),
+      totalDataPoints: stats.count,
+      color: modelColors[model as keyof typeof modelColors] || '#6B7280'
     }));
   }, [data]);
+
+  const CustomBarTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-background border-2 border-primary/20 rounded-xl shadow-2xl p-4 backdrop-blur-sm">
+          <p className="text-sm font-bold text-primary mb-2">{label}</p>
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <p className="text-muted-foreground">Model Efficiency:</p>
+                <p className="font-bold text-primary">{data.modelEfficiency}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Data Points:</p>
+                <p className="font-bold">{data.totalDataPoints}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Avg CPU Usage:</p>
+                <p className="font-bold">{data.avgCPUUsage}%</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Avg Battery:</p>
+                <p className="font-bold">{data.avgBatteryConsumption}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Avg Confidence:</p>
+                <p className="font-bold">{data.avgConfidence}%</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Max Confidence:</p>
+                <p className="font-bold">{data.maxConfidence}%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-6">
@@ -281,32 +342,45 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
             Model Efficiency Comparison
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            CPU Efficiency = CPU Usage / Confidence • Battery Efficiency = Battery Consumption / Confidence
+            Model Efficiency = Confidence / CPU Usage • CPU Efficiency = CPU Usage / Confidence • Battery Efficiency = Battery Consumption / Confidence
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div>
-              <h4 className="text-md font-semibold mb-4">CPU Efficiency by Model</h4>
+              <h4 className="text-md font-semibold mb-4">Model Efficiency (Confidence/CPU)</h4>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={modelEfficiencyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="model" angle={-45} textAnchor="end" height={80} fontSize={12} />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip content={CustomBarTooltip} />
+                  <Bar dataKey="modelEfficiency" fill="#8B5CF6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div>
+              <h4 className="text-md font-semibold mb-4">CPU Efficiency (CPU/Confidence)</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={modelEfficiencyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="model" angle={-45} textAnchor="end" height={80} fontSize={12} />
+                  <YAxis />
+                  <Tooltip content={CustomBarTooltip} />
                   <Bar dataKey="cpuEfficiency" fill="#3B82F6" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
             
             <div>
-              <h4 className="text-md font-semibold mb-4">Battery Efficiency by Model</h4>
+              <h4 className="text-md font-semibold mb-4">Battery Efficiency (Battery/Confidence)</h4>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={modelEfficiencyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="model" angle={-45} textAnchor="end" height={80} fontSize={12} />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip content={CustomBarTooltip} />
                   <Bar dataKey="batteryEfficiency" fill="#10B981" />
                 </BarChart>
               </ResponsiveContainer>
