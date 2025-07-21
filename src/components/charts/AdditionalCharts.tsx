@@ -43,7 +43,7 @@ export const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ data }) => {
 
     return Object.entries(modelStats).map(([model, stats]) => ({
       model,
-      avgEnergy: stats.totalEnergy / stats.count,
+      totalEnergy: stats.totalEnergy,
       avgConfidence: stats.totalConfidence / stats.count,
       avgInference: stats.totalInference / stats.count,
       efficiency: (stats.totalConfidence / stats.count) / (stats.totalEnergy / stats.count), // Confidence per unit energy
@@ -134,7 +134,7 @@ export const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ data }) => {
                       <div className="bg-card border border-border rounded-lg p-3 shadow-md">
                         <p className="font-medium">{label}</p>
                         <p className="text-sm text-muted-foreground">
-                          Avg Energy: {data.avgEnergy.toFixed(2)}J
+                          Total Energy: {data.totalEnergy.toFixed(2)}J
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Avg Confidence: {(data.avgConfidence * 100).toFixed(1)}%
