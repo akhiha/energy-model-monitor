@@ -19,5 +19,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: process.env.NODE_ENV === 'production' ? '/YOUR_ACTUAL_REPO_NAME/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/energy-model-monitor/' : '/',
 }));
