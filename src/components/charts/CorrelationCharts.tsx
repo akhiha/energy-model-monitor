@@ -83,59 +83,51 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
   };
 
   return (
-    <div className="grid grid-cols-2 gap-6">
-      {modelChartData.map((modelChart, index) => (
-        <Card key={modelChart.model} className="chart-container">
-          <CardHeader>
-            <CardTitle className="text-base">
-              {modelChart.model} - Energy vs Confidence
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <ScatterChart>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis 
-                  type="number"
-                  dataKey="x" 
-                  domain={[0, 5]}
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={11}
-                  name="Energy Usage"
-                  unit="J"
-                  tickCount={6}
-                />
-                <YAxis 
-                  dataKey="y" 
-                  domain={[0, 1]}
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={11}
-                  name="Confidence"
-                  tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
-                />
-                <Tooltip content={CustomTooltip} />
-                
-                {/* Scatter points */}
+    <div className="w-full">
+      <Card className="chart-container">
+        <CardHeader>
+          <CardTitle>Energy vs Confidence Correlation - All Models</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={500}>
+            <ScatterChart>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis 
+                type="number"
+                dataKey="x" 
+                domain={[0, 5]}
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                name="Energy Usage"
+                unit="J"
+                tickCount={6}
+              />
+              <YAxis 
+                type="number"
+                dataKey="y" 
+                domain={[0, 1]}
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                name="Confidence"
+                tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
+                tickCount={6}
+              />
+              <Tooltip content={CustomTooltip} />
+              
+              {/* Scatter plot for each model */}
+              {modelChartData.map((modelChart) => (
                 <Scatter
+                  key={modelChart.model}
+                  name={modelChart.model}
                   data={modelChart.data}
                   fill={modelChart.color}
                   strokeWidth={0}
                 />
-                
-                {/* Trend line */}
-                <Scatter
-                  data={modelChart.trendLine}
-                  fill="none"
-                  stroke={modelChart.color}
-                  strokeWidth={2}
-                  line={{ stroke: modelChart.color, strokeWidth: 2 }}
-                  shape={() => null}
-                />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      ))}
+              ))}
+            </ScatterChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
     </div>
   );
 };
