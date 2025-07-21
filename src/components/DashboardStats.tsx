@@ -17,8 +17,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
       bgColor: 'bg-chart-1/10'
     },
     {
-      title: 'Avg Energy Usage',
-      value: `${stats.avgEnergyUsage.toFixed(2)}J`,
+      title: 'Total Energy Usage',
+      value: `${stats.totalEnergyUsage.toFixed(2)}J`,
       icon: Zap,
       color: 'text-chart-2',
       bgColor: 'bg-chart-2/10'

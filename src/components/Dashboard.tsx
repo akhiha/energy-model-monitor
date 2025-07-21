@@ -14,13 +14,13 @@ export const Dashboard: React.FC = () => {
 
   const stats: StatsType = useMemo(() => {
     if (data.length === 0) {
-      return {
-        totalModels: 0,
-        totalDataPoints: 0,
-        avgEnergyUsage: 0,
-        avgConfidence: 0,
-        avgInferenceTime: 0,
-      };
+    return {
+      totalModels: 0,
+      totalDataPoints: 0,
+      totalEnergyUsage: 0,
+      avgConfidence: 0,
+      avgInferenceTime: 0,
+    };
     }
 
     const uniqueModels = new Set(data.map(item => item.ModelName)).size;
@@ -31,7 +31,7 @@ export const Dashboard: React.FC = () => {
     return {
       totalModels: uniqueModels,
       totalDataPoints: data.length,
-      avgEnergyUsage: totalEnergyUsage / data.length,
+      totalEnergyUsage: totalEnergyUsage,
       avgConfidence: totalConfidence / data.length,
       avgInferenceTime: totalInferenceTime / data.length,
     };

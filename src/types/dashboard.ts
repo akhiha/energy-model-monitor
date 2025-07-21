@@ -11,7 +11,7 @@ export interface MonitoringData {
 export interface DashboardStats {
   totalModels: number;
   totalDataPoints: number;
-  avgEnergyUsage: number;
+  totalEnergyUsage: number;
   avgConfidence: number;
   avgInferenceTime: number;
 }
