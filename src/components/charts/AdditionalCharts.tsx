@@ -25,19 +25,26 @@ export const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ data }) => {
     );
   };
 
-  // Energy efficiency over time data separated by model
+  // Energy efficiency over time data separated by model with normalized starting points
   const energyEfficiencyByModel = React.useMemo(() => {
     const sortedData = [...data].sort((a, b) => a.ID - b.ID);
     
-    // Create a complete timeline with all IDs
-    const allIDs = [...new Set(sortedData.map(item => item.ID))].sort((a, b) => a - b);
+    // Group data by model first
+    const modelGroups = models.reduce((acc, model) => {
+      acc[model] = sortedData.filter(item => item.ModelName === model);
+      return acc;
+    }, {} as Record<string, MonitoringData[]>);
     
-    return allIDs.map(id => {
-      const baseEntry: any = { ID: id };
+    // Find the minimum length to align all models
+    const minLength = Math.min(...models.map(model => modelGroups[model].length));
+    
+    // Create aligned data points (0 to minLength-1 instead of using ID)
+    return Array.from({ length: minLength }, (_, index) => {
+      const baseEntry: any = { timePoint: index };
       
       models.forEach(model => {
-        const modelData = sortedData.find(item => item.ID === id && item.ModelName === model);
-        if (modelData) {
+        if (modelGroups[model][index]) {
+          const modelData = modelGroups[model][index];
           baseEntry[model] = modelData.EnergyPerConfidence || (modelData.EnergyUsage / Math.max(modelData.MeanConfidence, 0.001));
         }
       });
@@ -127,14 +134,16 @@ export const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ data }) => {
               <LineChart data={energyEfficiencyByModel}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
-                  dataKey="ID" 
+                  dataKey="timePoint" 
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={12}
+                  label={{ value: 'Time Points', position: 'insideBottom', offset: -5 }}
                 />
                 <YAxis 
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={12}
                   tickFormatter={(value) => value.toFixed(1)}
+                  label={{ value: 'Energy Efficiency', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip content={CustomTooltip} />
                 <Legend />

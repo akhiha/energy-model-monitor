@@ -163,8 +163,19 @@ export const Dashboard: React.FC = () => {
         )}
 
         {/* Footer */}
-        <div className="text-center text-sm text-muted-foreground pt-8 border-t">
+        <div className="text-center text-sm text-muted-foreground pt-8 border-t space-y-2">
           <p>Interactive dashboard for model performance analysis • Built with React & Recharts</p>
+          <p>
+            <strong>Reference:</strong> Akhila Matathammal and Dr. Karthik Vaidhyanathan, IIIT Hyderabad. 
+            <a 
+              href="https://doi.org/10.1109/ICSA-C65153.2025.00081" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline ml-2"
+            >
+              EdgeMLBalancer - DOI: 10.1109/ICSA-C65153.2025.00081
+            </a>
+          </p>
         </div>
       </div>
     </div>
