@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CSVUploader } from './CSVUploader';
 import { DashboardStats } from './DashboardStats';
 import { ModelFrequencyChart } from './charts/ModelFrequencyChart';
@@ -6,11 +6,17 @@ import { CumulativeEnergyChart } from './charts/CumulativeEnergyChart';
 import { CorrelationCharts } from './charts/CorrelationCharts';
 import { AdditionalCharts } from './charts/AdditionalCharts';
 import { MonitoringData, DashboardStats as StatsType } from '@/types/dashboard';
+import { generateSampleData } from '@/utils/sampleData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, TrendingUp, Zap } from 'lucide-react';
+import { BarChart3, TrendingUp, Zap, Brain, Network } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const [data, setData] = useState<MonitoringData[]>([]);
+
+  // Load sample data on mount for demo
+  useEffect(() => {
+    setData(generateSampleData());
+  }, []);
 
   const stats: StatsType = useMemo(() => {
     if (data.length === 0) {
@@ -45,22 +51,39 @@ export const Dashboard: React.FC = () => {
     <div className="dashboard-container">
       <div className="container mx-auto p-6 space-y-8">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center space-x-3">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <BarChart3 className="h-8 w-8 text-primary" />
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center space-x-4">
+            <div className="p-4 bg-gradient-to-br from-primary/20 to-chart-2/20 rounded-xl">
+              <div className="flex items-center space-x-2">
+                <Brain className="h-10 w-10 text-primary" />
+                <Network className="h-8 w-8 text-chart-2" />
+              </div>
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
-              Model Monitoring Dashboard
-            </h1>
+            <div className="text-left">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-chart-2 to-chart-3 bg-clip-text text-transparent">
+                SAGE-ML
+              </h1>
+              <p className="text-lg font-medium text-muted-foreground">
+                Self-Adaptive Model Switching Across the Edge–Cloud Continuum
+              </p>
+            </div>
           </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Analyze model performance, energy consumption, and correlations from your CSV data
-          </p>
+          <div className="max-w-4xl mx-auto">
+            <p className="text-xl text-muted-foreground leading-relaxed">
+              Real-time monitoring and analysis of adaptive model selection using MAPE-K feedback loops
+            </p>
+            <div className="flex items-center justify-center space-x-6 mt-4 text-sm text-muted-foreground">
+              <span className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>Live Demo</span>
+              </span>
+              <span>•</span>
+              <span>Edge-Cloud Optimization</span>
+              <span>•</span>
+              <span>Energy-Aware Adaptation</span>
+            </div>
+          </div>
         </div>
-
-        {/* CSV Uploader */}
-        <CSVUploader onDataLoad={handleDataLoad} />
 
         {data.length > 0 ? (
           <>
