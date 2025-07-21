@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MonitoringData } from '@/types/dashboard';
 
@@ -16,17 +16,11 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
     return models.map((model, index) => {
       const modelData = data.filter(item => item.ModelName === model);
       const confidenceValues = modelData.map(item => item.MeanConfidence).sort((a, b) => a - b);
-      const energyValues = modelData.map(item => item.EnergyUsage).sort((a, b) => a - b);
       
       // Calculate quartiles for confidence
       const confidenceQ1 = confidenceValues[Math.floor(confidenceValues.length * 0.25)];
       const confidenceQ2 = confidenceValues[Math.floor(confidenceValues.length * 0.5)];
       const confidenceQ3 = confidenceValues[Math.floor(confidenceValues.length * 0.75)];
-      
-      // Calculate quartiles for energy
-      const energyQ1 = energyValues[Math.floor(energyValues.length * 0.25)];
-      const energyQ2 = energyValues[Math.floor(energyValues.length * 0.5)];
-      const energyQ3 = energyValues[Math.floor(energyValues.length * 0.75)];
       
       return {
         model,
@@ -35,12 +29,13 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
         confidenceQ2,
         confidenceQ3,
         confidenceMax: confidenceValues[confidenceValues.length - 1],
-        energyMin: energyValues[0],
-        energyQ1,
-        energyQ2,
-        energyQ3,
-        energyMax: energyValues[energyValues.length - 1],
-        color: colors[index % colors.length]
+        color: colors[index % colors.length],
+        // Box plot visual data
+        boxHeight: confidenceQ3 - confidenceQ1, // IQR
+        boxStart: confidenceQ1,
+        median: confidenceQ2,
+        lowerWhisker: confidenceValues[0],
+        upperWhisker: confidenceValues[confidenceValues.length - 1]
       };
     });
   }, [data]);
@@ -53,17 +48,11 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
     return models.map((model, index) => {
       const modelData = data.filter(item => item.ModelName === model);
       const inferenceValues = modelData.map(item => item.MeanInference).sort((a, b) => a - b);
-      const energyValues = modelData.map(item => item.EnergyUsage).sort((a, b) => a - b);
       
       // Calculate quartiles for inference time
       const inferenceQ1 = inferenceValues[Math.floor(inferenceValues.length * 0.25)];
       const inferenceQ2 = inferenceValues[Math.floor(inferenceValues.length * 0.5)];
       const inferenceQ3 = inferenceValues[Math.floor(inferenceValues.length * 0.75)];
-      
-      // Calculate quartiles for energy
-      const energyQ1 = energyValues[Math.floor(energyValues.length * 0.25)];
-      const energyQ2 = energyValues[Math.floor(energyValues.length * 0.5)];
-      const energyQ3 = energyValues[Math.floor(energyValues.length * 0.75)];
       
       return {
         model,
@@ -72,89 +61,71 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
         inferenceQ2,
         inferenceQ3,
         inferenceMax: inferenceValues[inferenceValues.length - 1],
-        energyMin: energyValues[0],
-        energyQ1,
-        energyQ2,
-        energyQ3,
-        energyMax: energyValues[energyValues.length - 1],
-        color: colors[index % colors.length]
+        color: colors[index % colors.length],
+        // Box plot visual data
+        boxHeight: inferenceQ3 - inferenceQ1, // IQR
+        boxStart: inferenceQ1,
+        median: inferenceQ2,
+        lowerWhisker: inferenceValues[0],
+        upperWhisker: inferenceValues[inferenceValues.length - 1]
       };
     });
   }, [data]);
 
-  // Prepare heat map data for all three variables
-  const heatMapData = React.useMemo(() => {
-    const models = [...new Set(data.map(item => item.ModelName))];
-    
-    return models.map(model => {
-      const modelData = data.filter(item => item.ModelName === model);
-      
-      // Calculate correlations (simplified Pearson correlation coefficient)
-      const energyValues = modelData.map(item => item.EnergyUsage);
-      const confidenceValues = modelData.map(item => item.MeanConfidence);
-      const inferenceValues = modelData.map(item => item.MeanInference);
-      
-      const mean = (arr: number[]) => arr.reduce((sum, val) => sum + val, 0) / arr.length;
-      const energyMean = mean(energyValues);
-      const confidenceMean = mean(confidenceValues);
-      const inferenceMean = mean(inferenceValues);
-      
-      const correlation = (arr1: number[], arr2: number[], mean1: number, mean2: number) => {
-        const numerator = arr1.reduce((sum, val, i) => sum + (val - mean1) * (arr2[i] - mean2), 0);
-        const denominator = Math.sqrt(
-          arr1.reduce((sum, val) => sum + Math.pow(val - mean1, 2), 0) *
-          arr2.reduce((sum, val) => sum + Math.pow(val - mean2, 2), 0)
-        );
-        return denominator === 0 ? 0 : numerator / denominator;
-      };
-      
-      return {
-        model,
-        energyConfidence: correlation(energyValues, confidenceValues, energyMean, confidenceMean),
-        energyInference: correlation(energyValues, inferenceValues, energyMean, inferenceMean),
-        confidenceInference: correlation(confidenceValues, inferenceValues, confidenceMean, inferenceMean)
-      };
-    });
-  }, [data]);
-
-  const BoxPlotTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-card border border-border rounded-lg p-3 shadow-md">
-          <p className="font-medium">{label}</p>
-          <p className="text-sm text-muted-foreground">Min: {data.min?.toFixed(3)}</p>
-          <p className="text-sm text-muted-foreground">Q1: {data.q1?.toFixed(3)}</p>
-          <p className="text-sm text-muted-foreground">Median: {data.median?.toFixed(3)}</p>
-          <p className="text-sm text-muted-foreground">Q3: {data.q3?.toFixed(3)}</p>
-          <p className="text-sm text-muted-foreground">Max: {data.max?.toFixed(3)}</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const HeatMapTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-card border border-border rounded-lg p-3 shadow-md">
-          <p className="font-medium">{label}</p>
-          <p className="text-sm text-muted-foreground">Energy-Confidence: {data.energyConfidence.toFixed(3)}</p>
-          <p className="text-sm text-muted-foreground">Energy-Inference: {data.energyInference.toFixed(3)}</p>
-          <p className="text-sm text-muted-foreground">Confidence-Inference: {data.confidenceInference.toFixed(3)}</p>
-        </div>
-      );
-    }
-    return null;
+  const CustomBoxPlot = ({ data: plotData, isConfidence = false }: { data: any[], isConfidence?: boolean }) => {
+    return (
+      <div className="relative">
+        {plotData.map((item, index) => {
+          const xPosition = index * (100 / plotData.length) + (50 / plotData.length);
+          const yScale = isConfidence ? 100 : 1; // Scale for percentage vs ms
+          
+          return (
+            <div key={item.model} className="absolute" style={{ left: `${xPosition}%` }}>
+              {/* Whiskers */}
+              <div 
+                className="absolute w-0.5 bg-muted-foreground"
+                style={{ 
+                  height: `${(item.upperWhisker - item.lowerWhisker) * yScale}px`,
+                  top: `${400 - item.upperWhisker * yScale}px`,
+                  left: '50%',
+                  transform: 'translateX(-50%)'
+                }}
+              />
+              {/* Box (IQR) */}
+              <div
+                className="absolute border-2 bg-opacity-50"
+                style={{
+                  width: '40px',
+                  height: `${item.boxHeight * yScale}px`,
+                  top: `${400 - (item.boxStart + item.boxHeight) * yScale}px`,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  backgroundColor: item.color,
+                  borderColor: item.color
+                }}
+              />
+              {/* Median line */}
+              <div
+                className="absolute w-10 h-0.5 bg-foreground"
+                style={{
+                  top: `${400 - item.median * yScale}px`,
+                  left: '50%',
+                  transform: 'translateX(-50%)'
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Energy vs Confidence Box Plot */}
       <Card className="chart-container">
         <CardHeader>
-          <CardTitle>Energy vs Confidence Distribution</CardTitle>
+          <CardTitle>Energy vs Confidence Box Plot</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
@@ -170,12 +141,34 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
                 fontSize={12}
                 tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
               />
-              <Tooltip content={BoxPlotTooltip} />
-              <Bar dataKey="confidenceQ2" name="Median Confidence">
+              <Tooltip content={(props) => {
+                if (props.active && props.payload && props.payload.length) {
+                  const data = props.payload[0].payload;
+                  return (
+                    <div className="bg-card border border-border rounded-lg p-3 shadow-md">
+                      <p className="font-medium">{data.model}</p>
+                      <p className="text-sm text-muted-foreground">Min: {(data.confidenceMin * 100).toFixed(1)}%</p>
+                      <p className="text-sm text-muted-foreground">Q1: {(data.confidenceQ1 * 100).toFixed(1)}%</p>
+                      <p className="text-sm text-muted-foreground">Median: {(data.confidenceQ2 * 100).toFixed(1)}%</p>
+                      <p className="text-sm text-muted-foreground">Q3: {(data.confidenceQ3 * 100).toFixed(1)}%</p>
+                      <p className="text-sm text-muted-foreground">Max: {(data.confidenceMax * 100).toFixed(1)}%</p>
+                    </div>
+                  );
+                }
+                return null;
+              }} />
+              {/* Lower whisker */}
+              <Bar dataKey="confidenceMin" fill="transparent" stroke="hsl(var(--muted-foreground))" strokeWidth={1} />
+              {/* Box (Q1 to Q3) */}
+              <Bar dataKey="boxHeight" stackId="box">
                 {energyConfidenceBoxData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                  <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.7} />
                 ))}
               </Bar>
+              {/* Median line */}
+              <Bar dataKey="confidenceQ2" fill="hsl(var(--foreground))" />
+              {/* Upper whisker */}
+              <Bar dataKey="confidenceMax" fill="transparent" stroke="hsl(var(--muted-foreground))" strokeWidth={1} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -184,7 +177,7 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
       {/* Energy vs Inference Time Box Plot */}
       <Card className="chart-container">
         <CardHeader>
-          <CardTitle>Energy vs Inference Distribution</CardTitle>
+          <CardTitle>Energy vs Inference Time Box Plot</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
@@ -200,41 +193,30 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
                 fontSize={12}
                 unit="ms"
               />
-              <Tooltip content={BoxPlotTooltip} />
-              <Bar dataKey="inferenceQ2" name="Median Inference Time">
+              <Tooltip content={(props) => {
+                if (props.active && props.payload && props.payload.length) {
+                  const data = props.payload[0].payload;
+                  return (
+                    <div className="bg-card border border-border rounded-lg p-3 shadow-md">
+                      <p className="font-medium">{data.model}</p>
+                      <p className="text-sm text-muted-foreground">Min: {data.inferenceMin.toFixed(2)}ms</p>
+                      <p className="text-sm text-muted-foreground">Q1: {data.inferenceQ1.toFixed(2)}ms</p>
+                      <p className="text-sm text-muted-foreground">Median: {data.inferenceQ2.toFixed(2)}ms</p>
+                      <p className="text-sm text-muted-foreground">Q3: {data.inferenceQ3.toFixed(2)}ms</p>
+                      <p className="text-sm text-muted-foreground">Max: {data.inferenceMax.toFixed(2)}ms</p>
+                    </div>
+                  );
+                }
+                return null;
+              }} />
+              {/* Box plot representation using stacked bars */}
+              <Bar dataKey="inferenceQ1" stackId="1" fill="transparent" />
+              <Bar dataKey="boxHeight" stackId="1">
                 {energyInferenceBoxData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                  <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.7} />
                 ))}
               </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Correlation Heat Map */}
-      <Card className="chart-container">
-        <CardHeader>
-          <CardTitle>Correlation Heat Map</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={heatMapData} layout="horizontal">
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis 
-                dataKey="model"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-              />
-              <YAxis 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                domain={[-1, 1]}
-              />
-              <Tooltip content={HeatMapTooltip} />
-              <Legend />
-              <Bar dataKey="energyConfidence" name="Energy-Confidence" fill="hsl(var(--chart-1))" />
-              <Bar dataKey="energyInference" name="Energy-Inference" fill="hsl(var(--chart-2))" />
-              <Bar dataKey="confidenceInference" name="Confidence-Inference" fill="hsl(var(--chart-3))" />
+              <Bar dataKey="inferenceQ2" fill="hsl(var(--foreground))" opacity={0.8} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
