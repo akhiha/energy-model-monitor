@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MonitoringData } from '@/types/dashboard';
-import { TrendingUp, Zap } from 'lucide-react';
+import { TrendingUp, Zap, BarChart3 } from 'lucide-react';
 
 interface EfficiencyChartsProps {
   data: MonitoringData[];
@@ -132,6 +132,44 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
     setSelectedModels(newSelected);
   };
 
+  // Calculate model efficiency comparison data
+  const modelEfficiencyData = useMemo(() => {
+    const modelStats: Record<string, { 
+      cpuEfficiencySum: number, 
+      batteryEfficiencySum: number, 
+      count: number,
+      model: string
+    }> = {};
+
+    data.forEach(item => {
+      if (!modelStats[item.SelectedModel]) {
+        modelStats[item.SelectedModel] = { 
+          cpuEfficiencySum: 0, 
+          batteryEfficiencySum: 0, 
+          count: 0,
+          model: item.SelectedModel
+        };
+      }
+      
+      const stats = modelStats[item.SelectedModel];
+      // CPU efficiency = CPU / confidence
+      const cpuEff = item.InstantaneousConfidence > 0 ? item.CPUUsage / item.InstantaneousConfidence : 0;
+      // Battery efficiency = Battery / confidence  
+      const batteryEff = item.InstantaneousConfidence > 0 ? item.BatteryConsumption / item.InstantaneousConfidence : 0;
+      
+      stats.cpuEfficiencySum += cpuEff;
+      stats.batteryEfficiencySum += batteryEff;
+      stats.count += 1;
+    });
+
+    return Object.values(modelStats).map(stats => ({
+      model: stats.model,
+      cpuEfficiency: Number((stats.cpuEfficiencySum / stats.count).toFixed(3)),
+      batteryEfficiency: Number((stats.batteryEfficiencySum / stats.count).toFixed(3)),
+      color: modelColors[stats.model as keyof typeof modelColors] || '#6B7280'
+    }));
+  }, [data]);
+
   return (
     <div className="space-y-6">
       {/* Model Selection */}
@@ -232,6 +270,48 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
               ))}
             </LineChart>
           </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Model Efficiency Comparison */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Model Efficiency Comparison
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            CPU Efficiency = CPU Usage / Confidence • Battery Efficiency = Battery Consumption / Confidence
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h4 className="text-md font-semibold mb-4">CPU Efficiency by Model</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={modelEfficiencyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="model" angle={-45} textAnchor="end" height={80} fontSize={12} />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="cpuEfficiency" fill="#3B82F6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div>
+              <h4 className="text-md font-semibold mb-4">Battery Efficiency by Model</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={modelEfficiencyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="model" angle={-45} textAnchor="end" height={80} fontSize={12} />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="batteryEfficiency" fill="#10B981" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

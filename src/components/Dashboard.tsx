@@ -41,7 +41,13 @@ export const Dashboard: React.FC = () => {
 
     const uniqueModels = new Set(data.map(item => item.SelectedModel)).size;
     const totalCPUUsage = data.reduce((sum, item) => sum + item.CPUUsage, 0);
-    const totalBatteryConsumption = data.reduce((sum, item) => sum + item.BatteryConsumption, 0);
+    
+    // Calculate battery consumption as difference between first and last battery levels
+    const sortedByTime = [...data].sort((a, b) => new Date(a.Timestamp).getTime() - new Date(b.Timestamp).getTime());
+    const firstBatteryLevel = sortedByTime[0]?.BatteryLevel || 0;
+    const lastBatteryLevel = sortedByTime[sortedByTime.length - 1]?.BatteryLevel || 0;
+    const totalBatteryConsumption = firstBatteryLevel - lastBatteryLevel;
+    
     const totalInstantaneousConfidence = data.reduce((sum, item) => sum + item.InstantaneousConfidence, 0);
     const maxInstantaneousConfidence = Math.max(...data.map(item => item.InstantaneousConfidence));
     const totalBatteryLevel = data.reduce((sum, item) => sum + item.BatteryLevel, 0);
