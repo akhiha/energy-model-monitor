@@ -342,49 +342,20 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
             Model Efficiency Comparison
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Model Efficiency = Confidence / CPU Usage • CPU Efficiency = CPU Usage / Confidence • Battery Efficiency = Battery Consumption / Confidence
+            Model Efficiency = Confidence / CPU Usage
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div>
-              <h4 className="text-md font-semibold mb-4">Model Efficiency (Confidence/CPU)</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={modelEfficiencyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="model" angle={-45} textAnchor="end" height={80} fontSize={12} />
-                  <YAxis />
-                  <Tooltip content={CustomBarTooltip} />
-                  <Bar dataKey="modelEfficiency" fill="#8B5CF6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <div>
-              <h4 className="text-md font-semibold mb-4">CPU Efficiency (CPU/Confidence)</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={modelEfficiencyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="model" angle={-45} textAnchor="end" height={80} fontSize={12} />
-                  <YAxis />
-                  <Tooltip content={CustomBarTooltip} />
-                  <Bar dataKey="cpuEfficiency" fill="#3B82F6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <div>
-              <h4 className="text-md font-semibold mb-4">Battery Efficiency (Battery/Confidence)</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={modelEfficiencyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="model" angle={-45} textAnchor="end" height={80} fontSize={12} />
-                  <YAxis />
-                  <Tooltip content={CustomBarTooltip} />
-                  <Bar dataKey="batteryEfficiency" fill="#10B981" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="w-full">
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={modelEfficiencyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="model" angle={-45} textAnchor="end" height={80} fontSize={12} />
+                <YAxis />
+                <Tooltip content={CustomBarTooltip} />
+                <Bar dataKey="modelEfficiency" fill="#8B5CF6" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
