@@ -292,7 +292,7 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
                   dataKey={model}
                   stroke={modelColors[model as keyof typeof modelColors] || '#6B7280'}
                   strokeWidth={2}
-                  dot={{ r: 3 }}
+                  dot={false}
                   connectNulls={false}
                 />
               ))}
@@ -327,7 +327,7 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
                   dataKey={model}
                   stroke={modelColors[model as keyof typeof modelColors] || '#6B7280'}
                   strokeWidth={2}
-                  dot={{ r: 3 }}
+                  dot={false}
                   connectNulls={false}
                 />
               ))}
