@@ -107,6 +107,23 @@ export const Dashboard: React.FC = () => {
               <span>Energy-Aware Adaptation</span>
             </div>
           </div>
+          
+          {/* Navigation */}
+          <div className="flex justify-center space-x-4">
+            <Link 
+              to="/upload" 
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2"
+            >
+              <Upload className="h-4 w-4" />
+              <span>Upload CV Data</span>
+            </Link>
+            <Link 
+              to="/llm" 
+              className="px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors"
+            >
+              LLM Dashboard
+            </Link>
+          </div>
         </div>
 
         {/* Always show dashboard since we now have sample data */}
