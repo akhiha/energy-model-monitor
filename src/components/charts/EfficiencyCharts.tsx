@@ -59,7 +59,8 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
           for (let i = 0; i < timePoint; i++) {
             if (sortedData[i] && sortedData[i].SelectedModel === model) {
               const cpuUsage = sortedData[i].CPUUsage;
-              modelValue = cpuUsage > 0 ? Math.min(100, Number((sortedData[i].InstantaneousConfidence / cpuUsage).toFixed(2))) : 0;
+              const confidence = sortedData[i].InstantaneousConfidence;
+              modelValue = confidence > 0 ? Number((cpuUsage / confidence).toFixed(2)) : 0;
             }
           }
           baseData[model] = modelValue;
@@ -85,7 +86,8 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
           for (let i = 0; i < timePoint; i++) {
             if (sortedData[i] && sortedData[i].SelectedModel === model) {
               const batteryConsumption = sortedData[i].BatteryConsumption;
-              modelValue = batteryConsumption > 0 ? Math.min(100, Number((sortedData[i].InstantaneousConfidence / batteryConsumption).toFixed(2))) : 0;
+              const confidence = sortedData[i].InstantaneousConfidence;
+              modelValue = confidence > 0 ? Number((batteryConsumption / confidence).toFixed(2)) : 0;
             }
           }
           baseData[model] = modelValue;
@@ -272,7 +274,7 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
             CPU Efficiency Over Time by Model
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Efficiency = Confidence / CPU Usage
+            Efficiency = CPU Usage / Confidence
           </p>
         </CardHeader>
         <CardContent>
@@ -307,7 +309,7 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
             Battery Efficiency Over Time by Model
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Efficiency = Confidence / Battery Consumption
+            Efficiency = Battery Consumption / Confidence
           </p>
         </CardHeader>
         <CardContent>
