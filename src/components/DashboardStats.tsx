@@ -24,8 +24,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
       bgColor: 'bg-chart-2/10'
     },
     {
-      title: 'Total CPU Usage',
-      value: `${stats.totalCPUUsage.toFixed(1)}%`,
+      title: 'Avg CPU Usage',
+      value: `${(stats.totalCPUUsage / stats.totalDataPoints).toFixed(1)}%`,
       icon: Cpu,
       color: 'text-chart-3',
       bgColor: 'bg-chart-3/10'
@@ -38,8 +38,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
       bgColor: 'bg-chart-4/10'
     },
     {
-      title: 'Avg Confidence',
-      value: `${stats.avgInstantaneousConfidence.toFixed(1)}%`,
+      title: 'Max Confidence',
+      value: `${stats.maxInstantaneousConfidence.toFixed(1)}%`,
       icon: Target,
       color: 'text-chart-5',
       bgColor: 'bg-chart-5/10'

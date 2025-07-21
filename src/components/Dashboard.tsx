@@ -33,6 +33,7 @@ export const Dashboard: React.FC = () => {
         totalCPUUsage: 0,
         totalBatteryConsumption: 0,
         avgInstantaneousConfidence: 0,
+        maxInstantaneousConfidence: 0,
         avgBatteryLevel: 0,
         totalPredictions: 0,
       };
@@ -42,6 +43,7 @@ export const Dashboard: React.FC = () => {
     const totalCPUUsage = data.reduce((sum, item) => sum + item.CPUUsage, 0);
     const totalBatteryConsumption = data.reduce((sum, item) => sum + item.BatteryConsumption, 0);
     const totalInstantaneousConfidence = data.reduce((sum, item) => sum + item.InstantaneousConfidence, 0);
+    const maxInstantaneousConfidence = Math.max(...data.map(item => item.InstantaneousConfidence));
     const totalBatteryLevel = data.reduce((sum, item) => sum + item.BatteryLevel, 0);
     const totalPredictions = data.reduce((sum, item) => sum + item.CurrentTotalPredictions, 0);
 
@@ -51,6 +53,7 @@ export const Dashboard: React.FC = () => {
       totalCPUUsage: totalCPUUsage,
       totalBatteryConsumption: totalBatteryConsumption,
       avgInstantaneousConfidence: totalInstantaneousConfidence / data.length,
+      maxInstantaneousConfidence: maxInstantaneousConfidence,
       avgBatteryLevel: totalBatteryLevel / data.length,
       totalPredictions: totalPredictions,
     };

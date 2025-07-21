@@ -98,6 +98,30 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
     return { cpuEfficiencyData: cpuData, batteryEfficiencyData: batteryData };
   }, [data, uniqueModels]);
 
+  // Calculate dynamic Y-axis domain for better visibility
+  const getYAxisDomain = (chartData: any[], models: string[]) => {
+    let allValues: number[] = [];
+    chartData.forEach(point => {
+      models.forEach(model => {
+        if (point[model] !== null && point[model] !== undefined) {
+          allValues.push(point[model]);
+        }
+      });
+    });
+    
+    if (allValues.length === 0) return [0, 100];
+    
+    const min = Math.min(...allValues);
+    const max = Math.max(...allValues);
+    const range = max - min;
+    const padding = range * 0.1; // 10% padding
+    
+    return [
+      Math.max(0, Math.floor(min - padding)), 
+      Math.min(100, Math.ceil(max + padding))
+    ];
+  };
+
   const toggleModel = (model: string) => {
     const newSelected = new Set(selectedModels);
     if (newSelected.has(model)) {
@@ -157,7 +181,7 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
             <LineChart data={cpuEfficiencyData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="timePoint" />
-              <YAxis domain={[0, 100]} />
+              <YAxis domain={getYAxisDomain(cpuEfficiencyData, Array.from(selectedModels))} />
               <Tooltip />
               <Legend />
               {Array.from(selectedModels).map((model) => (
@@ -192,7 +216,7 @@ export const EfficiencyCharts: React.FC<EfficiencyChartsProps> = ({ data }) => {
             <LineChart data={batteryEfficiencyData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="timePoint" />
-              <YAxis domain={[0, 100]} />
+              <YAxis domain={getYAxisDomain(batteryEfficiencyData, Array.from(selectedModels))} />
               <Tooltip />
               <Legend />
               {Array.from(selectedModels).map((model) => (

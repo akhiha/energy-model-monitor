@@ -16,7 +16,7 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set(uniqueModels));
 
   const chartData = useMemo(() => {
-    const modelData: Record<string, { confidenceData: any[], batteryData: any[], predictionData: any[] }> = {};
+    const modelData: Record<string, { confidenceData: any[], batteryData: any[], predictionData: any[], cpuBatteryData: any[] }> = {};
     
     uniqueModels.forEach(model => {
       const modelItems = data.filter(item => item.SelectedModel === model);
@@ -42,7 +42,14 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
         id: index,
       }));
 
-      modelData[model] = { confidenceData, batteryData, predictionData };
+      const cpuBatteryData = modelItems.map((item, index) => ({
+        x: item.CPUUsage,
+        y: item.BatteryConsumption,
+        model,
+        id: index,
+      }));
+
+      modelData[model] = { confidenceData, batteryData, predictionData, cpuBatteryData };
     });
 
     return modelData;
@@ -59,7 +66,7 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
   };
 
   const filteredData = useMemo(() => {
-    const filtered: Record<string, { confidenceData: any[], batteryData: any[], predictionData: any[] }> = {};
+    const filtered: Record<string, { confidenceData: any[], batteryData: any[], predictionData: any[], cpuBatteryData: any[] }> = {};
     selectedModels.forEach(model => {
       if (chartData[model]) {
         filtered[model] = chartData[model];
@@ -97,7 +104,7 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Confidence vs CPU</CardTitle>
@@ -162,6 +169,30 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
                     key={model}
                     name={model}
                     data={modelData.predictionData}
+                    fill={colors[index % colors.length]}
+                  />
+                ))}
+              </ScatterChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">CPU vs Battery Consumption</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <ScatterChart>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" dataKey="x" name="CPU Usage" />
+                <YAxis type="number" dataKey="y" name="Battery Consumption" />
+                <Tooltip />
+                {Object.entries(filteredData).map(([model, modelData], index) => (
+                  <Scatter
+                    key={model}
+                    name={model}
+                    data={modelData.cpuBatteryData}
                     fill={colors[index % colors.length]}
                   />
                 ))}

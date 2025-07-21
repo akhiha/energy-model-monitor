@@ -16,6 +16,7 @@ export interface DashboardStats {
   totalCPUUsage: number;
   totalBatteryConsumption: number;
   avgInstantaneousConfidence: number;
+  maxInstantaneousConfidence: number;
   avgBatteryLevel: number;
   totalPredictions: number;
 }
