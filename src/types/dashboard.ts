@@ -4,7 +4,6 @@ export interface MonitoringData {
   EnergyUsage: number;
   MeanConfidence: number;
   MeanInference: number;
-  CPUUsage: number;
   EnergyPerConfidence?: number;
   Timestamp?: string;
 }

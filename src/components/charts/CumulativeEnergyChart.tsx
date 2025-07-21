@@ -70,10 +70,9 @@ export const CumulativeEnergyChart: React.FC<CumulativeEnergyChartProps> = ({ da
               dataKey="CumulativeEnergy"
               stroke="hsl(var(--chart-2))"
               strokeWidth={3}
-              dot={{ fill: 'hsl(var(--chart-2))', strokeWidth: 2, r: 5 }}
-              activeDot={{ r: 7, stroke: 'hsl(var(--chart-2))', strokeWidth: 2, fill: 'hsl(var(--background))' }}
+              dot={{ fill: 'hsl(var(--chart-2))', strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, stroke: 'hsl(var(--chart-2))', strokeWidth: 2 }}
               name="Cumulative Energy (J)"
-              connectNulls={false}
             />
           </LineChart>
         </ResponsiveContainer>

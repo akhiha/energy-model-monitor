@@ -21,7 +21,6 @@ export const generateSampleData = (): MonitoringData[] => {
       EnergyUsage: item.EnergyUsage,
       MeanConfidence: item.Confidence,
       MeanInference: Math.random() * 50 + 20, // Generate inference time
-      CPUUsage: item.CPUUsage,
       EnergyPerConfidence: Number((item.EnergyUsage / item.Confidence).toFixed(4))
     });
   });
@@ -63,7 +62,6 @@ export const generateSampleData = (): MonitoringData[] => {
       EnergyUsage: Number(baseEnergy.toFixed(3)),
       MeanConfidence: Number(baseConfidence.toFixed(3)),
       MeanInference: Number(meanInference.toFixed(2)),
-      CPUUsage: Math.random() * 60 + 20, // 20 to 80% CPU usage
       EnergyPerConfidence: Number((baseEnergy / baseConfidence).toFixed(4))
     });
   }

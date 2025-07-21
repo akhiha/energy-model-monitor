@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MonitoringData } from '@/types/dashboard';
 
@@ -8,135 +8,128 @@ interface CorrelationChartsProps {
 }
 
 export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) => {
-  // Energy vs Confidence scatter with model colors
+  // Energy vs Confidence correlation data
   const energyConfidenceData = React.useMemo(() => {
-    const modelColors: Record<string, string> = {
-      'EfficientliteV2': 'hsl(var(--chart-1))',
-      'EfficientNetB0': 'hsl(var(--chart-2))',
-      'MobileNetV3': 'hsl(var(--chart-3))',
-      'ResNet50': 'hsl(var(--chart-4))'
-    };
+    const modelColors: Record<string, string> = {};
+    const colors = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+    
+    data.forEach((item, index) => {
+      if (!modelColors[item.ModelName]) {
+        modelColors[item.ModelName] = colors[Object.keys(modelColors).length % colors.length];
+      }
+    });
 
-    return data.map(item => ({
-      energy: item.EnergyUsage,
-      confidence: item.MeanConfidence * 100,
-      model: item.ModelName,
-      id: item.ID,
-      color: modelColors[item.ModelName] || 'hsl(var(--chart-1))'
-    }));
+    return {
+      data: data.map(item => ({
+        x: item.EnergyUsage,
+        y: item.MeanConfidence,
+        model: item.ModelName,
+        id: item.ID,
+        color: modelColors[item.ModelName]
+      })),
+      modelColors
+    };
   }, [data]);
 
-  // Energy vs CPU Usage scatter
-  const energyCPUData = React.useMemo(() => {
-    const modelColors: Record<string, string> = {
-      'EfficientliteV2': 'hsl(var(--chart-1))',
-      'EfficientNetB0': 'hsl(var(--chart-2))',
-      'MobileNetV3': 'hsl(var(--chart-3))',
-      'ResNet50': 'hsl(var(--chart-4))'
-    };
+  // Energy vs Inference Time correlation data
+  const energyInferenceData = React.useMemo(() => {
+    const modelColors: Record<string, string> = {};
+    const colors = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+    
+    data.forEach((item, index) => {
+      if (!modelColors[item.ModelName]) {
+        modelColors[item.ModelName] = colors[Object.keys(modelColors).length % colors.length];
+      }
+    });
 
-    return data.map(item => ({
-      energy: item.EnergyUsage,
-      cpu: item.CPUUsage,
-      model: item.ModelName,
-      id: item.ID,
-      color: modelColors[item.ModelName] || 'hsl(var(--chart-1))'
-    }));
+    return {
+      data: data.map(item => ({
+        x: item.EnergyUsage,
+        y: item.MeanInference,
+        model: item.ModelName,
+        id: item.ID,
+        color: modelColors[item.ModelName]
+      })),
+      modelColors
+    };
   }, [data]);
+
+  const CustomTooltip = ({ active, payload, xLabel, yLabel }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-card border border-border rounded-lg p-3 shadow-md">
+          <p className="font-medium">{data.model}</p>
+          <p className="text-sm text-muted-foreground">ID: {data.id}</p>
+          <p className="text-sm text-muted-foreground">
+            {xLabel}: {data.x.toFixed(3)}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {yLabel}: {data.y.toFixed(3)}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   // Group data by model for separate scatter series
-  const groupByModel = (scatterData: any[], xKey: string, yKey: string) => {
-    const grouped = scatterData.reduce((acc, point) => {
+  const groupDataByModel = (correlationData: any) => {
+    const grouped = correlationData.data.reduce((acc: any, point: any) => {
       if (!acc[point.model]) {
         acc[point.model] = [];
       }
-      acc[point.model].push({
-        [xKey]: point[xKey === 'energy' ? 'energy' : yKey === 'confidence' ? 'confidence' : 'cpu'],
-        [yKey]: point[xKey === 'energy' ? 'energy' : yKey === 'confidence' ? 'confidence' : 'cpu'],
-        model: point.model,
-        id: point.id
-      });
+      acc[point.model].push(point);
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {});
 
-    return Object.entries(grouped).map(([model, points], index) => ({
+    return Object.entries(grouped).map(([model, points]) => ({
       name: model,
       data: points,
-      color: `hsl(var(--chart-${index + 1}))`
+      color: correlationData.modelColors[model]
     }));
   };
 
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-card border border-border rounded-lg p-3 shadow-md">
-          <p className="font-medium">Model: {data.model}</p>
-          <p className="text-sm text-muted-foreground">ID: {data.id}</p>
-          <p className="text-sm text-muted-foreground">
-            Energy: {data.energy?.toFixed(2)}J
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Confidence: {data.confidence?.toFixed(1)}%
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const CPUTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-card border border-border rounded-lg p-3 shadow-md">
-          <p className="font-medium">Model: {data.model}</p>
-          <p className="text-sm text-muted-foreground">ID: {data.id}</p>
-          <p className="text-sm text-muted-foreground">
-            Energy: {data.energy?.toFixed(2)}J
-          </p>
-          <p className="text-sm text-muted-foreground">
-            CPU Usage: {data.cpu?.toFixed(1)}%
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
+  const energyConfidenceGroups = groupDataByModel(energyConfidenceData);
+  const energyInferenceGroups = groupDataByModel(energyInferenceData);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Energy vs Confidence Correlation */}
+      {/* Energy vs Confidence */}
       <Card className="chart-container">
         <CardHeader>
           <CardTitle>Energy vs Confidence Correlation</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
-            <ScatterChart data={energyConfidenceData}>
+            <ScatterChart>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis 
-                dataKey="energy"
+                dataKey="x" 
+                domain={['dataMin', 'dataMax']}
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
-                name="Energy Usage (J)"
-                tickFormatter={(value) => `${value.toFixed(1)}J`}
+                name="Energy Usage"
+                unit="J"
               />
               <YAxis 
-                dataKey="confidence"
+                dataKey="y" 
+                domain={['dataMin', 'dataMax']}
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
-                name="Confidence (%)"
-                tickFormatter={(value) => `${value.toFixed(0)}%`}
+                name="Confidence"
+                tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={(props) => 
+                <CustomTooltip {...props} xLabel="Energy (J)" yLabel="Confidence" />
+              } />
               <Legend />
-              {['EfficientliteV2', 'EfficientNetB0', 'MobileNetV3', 'ResNet50'].map((model, index) => (
+              {energyConfidenceGroups.map((group) => (
                 <Scatter
-                  key={model}
-                  name={model}
-                  data={energyConfidenceData.filter(d => d.model === model)}
-                  fill={`hsl(var(--chart-${index + 1}))`}
+                  key={group.name}
+                  name={group.name}
+                  data={group.data as any[]}
+                  fill={group.color}
                 />
               ))}
             </ScatterChart>
@@ -144,37 +137,41 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
         </CardContent>
       </Card>
 
-      {/* Energy vs CPU Usage Correlation */}
+      {/* Energy vs Inference Time */}
       <Card className="chart-container">
         <CardHeader>
-          <CardTitle>Energy vs CPU Usage Correlation</CardTitle>
+          <CardTitle>Energy vs Inference Time Correlation</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
-            <ScatterChart data={energyCPUData}>
+            <ScatterChart>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis 
-                dataKey="energy"
+                dataKey="x" 
+                domain={['dataMin', 'dataMax']}
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
-                name="Energy Usage (J)"
-                tickFormatter={(value) => `${value.toFixed(1)}J`}
+                name="Energy Usage"
+                unit="J"
               />
               <YAxis 
-                dataKey="cpu"
+                dataKey="y" 
+                domain={['dataMin', 'dataMax']}
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
-                name="CPU Usage (%)"
-                tickFormatter={(value) => `${value.toFixed(0)}%`}
+                name="Inference Time"
+                unit="ms"
               />
-              <Tooltip content={<CPUTooltip />} />
+              <Tooltip content={(props) => 
+                <CustomTooltip {...props} xLabel="Energy (J)" yLabel="Inference Time (ms)" />
+              } />
               <Legend />
-              {['EfficientliteV2', 'EfficientNetB0', 'MobileNetV3', 'ResNet50'].map((model, index) => (
+              {energyInferenceGroups.map((group) => (
                 <Scatter
-                  key={model}
-                  name={model}
-                  data={energyCPUData.filter(d => d.model === model)}
-                  fill={`hsl(var(--chart-${index + 1}))`}
+                  key={group.name}
+                  name={group.name}
+                  data={group.data as any[]}
+                  fill={group.color}
                 />
               ))}
             </ScatterChart>
