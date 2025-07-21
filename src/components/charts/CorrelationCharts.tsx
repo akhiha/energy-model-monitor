@@ -97,7 +97,7 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
                   dataKey="x" 
-                  domain={['dataMin', 'dataMax']}
+                  domain={[0, 5]}
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={11}
                   name="Energy"
@@ -105,7 +105,7 @@ export const CorrelationCharts: React.FC<CorrelationChartsProps> = ({ data }) =>
                 />
                 <YAxis 
                   dataKey="y" 
-                  domain={['dataMin', 'dataMax']}
+                  domain={[0, 1]}
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={11}
                   name="Confidence"
