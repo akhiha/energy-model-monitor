@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, ReferenceLine } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MonitoringData } from '@/types/dashboard';
 
@@ -8,17 +8,15 @@ interface AdditionalChartsProps {
 }
 
 export const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ data }) => {
-  // Energy per confidence over time
-  const energyPerConfidenceData = React.useMemo(() => {
-    return [...data]
-      .sort((a, b) => a.ID - b.ID)
-      .map(item => ({
-        ID: item.ID,
-        EnergyPerConfidence: item.EnergyPerConfidence || (item.EnergyUsage / Math.max(item.MeanConfidence, 0.001)),
-        ModelName: item.ModelName,
-        EnergyUsage: item.EnergyUsage,
-        MeanConfidence: item.MeanConfidence
-      }));
+  // Energy vs Confidence scatter plot
+  const energyConfidenceData = React.useMemo(() => {
+    return data.map(item => ({
+      EnergyUsage: item.EnergyUsage,
+      MeanConfidence: item.MeanConfidence * 100, // Convert to percentage
+      ModelName: item.ModelName,
+      ID: item.ID,
+      EnergyPerConfidence: item.EnergyPerConfidence || (item.EnergyUsage / Math.max(item.MeanConfidence, 0.001))
+    }));
   }, [data]);
 
   // Model efficiency analysis
@@ -70,36 +68,62 @@ export const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ data }) => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Energy per Confidence over Time */}
+      {/* Energy vs Confidence Scatter Plot */}
       <Card className="chart-container">
         <CardHeader>
-          <CardTitle>Energy Efficiency Over Time</CardTitle>
+          <CardTitle>Energy vs Confidence Analysis</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={energyPerConfidenceData}>
+            <ScatterChart data={energyConfidenceData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis 
-                dataKey="ID" 
+                dataKey="MeanConfidence" 
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
+                name="Confidence"
+                unit="%"
+                domain={[0, 100]}
+                tickFormatter={(value) => `${value}%`}
               />
               <YAxis 
+                dataKey="EnergyUsage"
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
-                tickFormatter={(value) => value.toFixed(1)}
+                name="Energy"
+                unit="J"
+                tickFormatter={(value) => `${value.toFixed(1)}J`}
               />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="EnergyPerConfidence"
+              <Tooltip 
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-card border border-border rounded-lg p-3 shadow-md">
+                        <p className="font-medium">ID: {data.ID}</p>
+                        <p className="text-sm text-chart-3">
+                          Model: {data.ModelName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Energy: {data.EnergyUsage.toFixed(3)}J
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Confidence: {data.MeanConfidence.toFixed(1)}%
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Scatter
+                dataKey="EnergyUsage"
+                fill="hsl(var(--chart-3))"
                 stroke="hsl(var(--chart-3))"
                 strokeWidth={2}
-                dot={{ fill: 'hsl(var(--chart-3))', strokeWidth: 2, r: 3 }}
-                name="Energy per Confidence"
               />
-            </LineChart>
+              <ReferenceLine x={75} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" label="75%" />
+            </ScatterChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
